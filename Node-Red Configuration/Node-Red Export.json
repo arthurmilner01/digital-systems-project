@@ -1,0 +1,283 @@
+[
+    {
+        "id": "9b755eec2ed8677e",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "d7ff8b5c6a4b3656",
+        "type": "mqtt-broker",
+        "name": "Mosquitto Server",
+        "broker": "192.168.1.100",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "08a83d3406e3d3eb",
+        "type": "sqlitedb",
+        "db": "/home/arthur/Desktop/digital-systems-project/Payment System Software/purchases.db",
+        "mode": "RWC"
+    },
+    {
+        "id": "9ad43789617e1d4c",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "database",
+        "name": "InfluxDB",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://192.168.1.100:8086",
+        "timeout": "10",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "b5bf598fcbe607ea",
+        "type": "mqtt in",
+        "z": "9b755eec2ed8677e",
+        "name": "Customer Data",
+        "topic": "shop/customer",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "d7ff8b5c6a4b3656",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 720,
+        "y": 300,
+        "wires": [
+            [
+                "4850aae7b1c10c13"
+            ]
+        ]
+    },
+    {
+        "id": "00af50aa2a059487",
+        "type": "mqtt in",
+        "z": "9b755eec2ed8677e",
+        "name": "Capacity Data",
+        "topic": "shop/business/capacity",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "d7ff8b5c6a4b3656",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 730,
+        "y": 440,
+        "wires": [
+            [
+                "dafa7fa0920771a2"
+            ]
+        ]
+    },
+    {
+        "id": "46be916384839543",
+        "type": "sqlite",
+        "z": "9b755eec2ed8677e",
+        "mydb": "08a83d3406e3d3eb",
+        "sqlquery": "prepared",
+        "sql": "INSERT INTO purchase (rfid_uid, name, weight, cost, purchased_at) VALUES (?,?,?,?,?);",
+        "name": "Insert into SQLite DB",
+        "x": 1480,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4850aae7b1c10c13",
+        "type": "json",
+        "z": "9b755eec2ed8677e",
+        "name": "Convert to JS Object",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 960,
+        "y": 300,
+        "wires": [
+            [
+                "19ca82f858dfddae"
+            ]
+        ]
+    },
+    {
+        "id": "19ca82f858dfddae",
+        "type": "function",
+        "z": "9b755eec2ed8677e",
+        "name": "Get as array for SQLite",
+        "func": "let rfid_uid = msg.payload.rfid_uid;\nlet name = msg.payload.name;\nlet weight = msg.payload.weight;\nlet cost = msg.payload.cost;\nlet purchased_at = (new Date()).toISOString();\n\nmsg.params = [rfid_uid, name, weight, cost, purchased_at]\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1230,
+        "y": 300,
+        "wires": [
+            [
+                "46be916384839543"
+            ]
+        ]
+    },
+    {
+        "id": "80a55ced457c4097",
+        "type": "function",
+        "z": "9b755eec2ed8677e",
+        "name": "Format for InfluxDB",
+        "func": "let name = msg.payload.name\nlet capacity = msg.payload.capacity\n\nmsg.payload = [\n    {\n        capacity:capacity\n    },\n    {\n        product_name:name\n    }\n];\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1170,
+        "y": 440,
+        "wires": [
+            [
+                "86c694573064b8cb"
+            ]
+        ]
+    },
+    {
+        "id": "dafa7fa0920771a2",
+        "type": "json",
+        "z": "9b755eec2ed8677e",
+        "name": "Convert to JS Object",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 940,
+        "y": 440,
+        "wires": [
+            [
+                "80a55ced457c4097"
+            ]
+        ]
+    },
+    {
+        "id": "86c694573064b8cb",
+        "type": "influxdb out",
+        "z": "9b755eec2ed8677e",
+        "influxdb": "9ad43789617e1d4c",
+        "name": "Send to InfluxDB",
+        "measurement": "capacities",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "s",
+        "retentionPolicyV18Flux": "",
+        "org": "zero_waste_shop",
+        "bucket": "capacity_data",
+        "x": 1390,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "c83b6c23a771b470",
+        "type": "mqtt in",
+        "z": "9b755eec2ed8677e",
+        "name": "Business Dispense Data",
+        "topic": "shop/business/dispense",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "d7ff8b5c6a4b3656",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 750,
+        "y": 540,
+        "wires": [
+            [
+                "71de9d13f5305bb6"
+            ]
+        ]
+    },
+    {
+        "id": "776b8de9069a2e76",
+        "type": "function",
+        "z": "9b755eec2ed8677e",
+        "name": "Format for InfluxDB",
+        "func": "let name = msg.payload.name\nlet weight = msg.payload.weight\nlet cost = msg.payload.cost\n\nmsg.payload = [\n    {\n        weight:weight,\n        cost:cost\n    },\n    {\n        product_name:name\n    }\n];\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1250,
+        "y": 540,
+        "wires": [
+            [
+                "7301a50c1110dfc0"
+            ]
+        ]
+    },
+    {
+        "id": "71de9d13f5305bb6",
+        "type": "json",
+        "z": "9b755eec2ed8677e",
+        "name": "Convert to JS Object",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 1020,
+        "y": 540,
+        "wires": [
+            [
+                "776b8de9069a2e76"
+            ]
+        ]
+    },
+    {
+        "id": "7301a50c1110dfc0",
+        "type": "influxdb out",
+        "z": "9b755eec2ed8677e",
+        "influxdb": "9ad43789617e1d4c",
+        "name": "Send to InfluxDB",
+        "measurement": "dispenses",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "s",
+        "retentionPolicyV18Flux": "",
+        "org": "zero_waste_shop",
+        "bucket": "dispense_data",
+        "x": 1470,
+        "y": 540,
+        "wires": []
+    }
+]

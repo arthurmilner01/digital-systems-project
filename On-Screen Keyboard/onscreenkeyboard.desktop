@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=On-Screen Keyboard
+Comment=Opens the on-screen keyboard
+Exec=wvkbd-mobintl -L 200
+Icon=utilities-terminal
+Terminal=false
+Type=Application

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container d-flex justify-content-center align-items-center pt-5 mt-5">
+    <div class="w-100 mx-auto">
+        <form method="POST">
+            <h1>Enter employee pin to access admin...</h1>
+            <div class="form-group">
+                <input type="password" class="form-control" name="employeePin" id="employeePin" placeholder="Employee pin..." required>
+                <small id="inputPinHelp" class="form-text text-muted">Please check the text input is selected when scanning employee tag.</small>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg btn-block mb-3">Access Admin</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

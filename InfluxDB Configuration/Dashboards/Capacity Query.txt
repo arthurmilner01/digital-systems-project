@@ -1,0 +1,6 @@
+from(bucket: "capacity_data")
+  |> range(start: 0)
+  |> filter(fn: (r) => r._measurement == "capacities") //Filter by capacities measurement
+  |> filter(fn: (r) => r.product_name == "Cashew Nuts") //Filter by product name tag
+  |> last()  //Only get last submission
+

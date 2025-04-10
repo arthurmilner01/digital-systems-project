@@ -1,0 +1,102 @@
+Total Revenue:
+from(bucket: "dispense_data")
+  |> range(start: today())
+  |> filter(fn: (r) => r["_measurement"] == "dispenses" and r["_field"] == "cost")
+  |> group(columns: [])
+  |> sum()
+
+
+Total Stock:
+from(bucket: "dispense_data")
+  |> range(start: today())
+  |> filter(fn: (r) => r["_measurement"] == "dispenses" and r["_field"] == "weight")
+  |> group(columns: [])
+  |> sum()
+
+
+Today's Revenue by Hour:
+import "experimental"
+import "date"
+
+startTime = experimental.addDuration(
+  to: date.truncate(t: now(), unit: 1d),
+  d: 7h
+)
+stopTime = experimental.addDuration(
+  to: date.truncate(t: now(), unit: 1d),
+  d: 18h
+)
+
+
+from(bucket: "dispense_data")
+  |> range(start: startTime, stop: stopTime )
+  |> filter(fn: (r) => r["_measurement"] == "dispenses")
+  |> filter(fn: (r) => r["_field"] == "weight")
+  |> group(columns: ["_measurement"])
+  |> aggregateWindow(every: 1h, fn: sum, createEmpty: true)
+
+
+Today's Stock by Hour:
+import "experimental"
+import "date"
+
+startTime = experimental.addDuration(
+  to: date.truncate(t: now(), unit: 1d),
+  d: 7h
+)
+stopTime = experimental.addDuration(
+  to: date.truncate(t: now(), unit: 1d),
+  d: 18h
+)
+
+
+from(bucket: "dispense_data")
+  |> range(start: startTime, stop: stopTime )
+  |> filter(fn: (r) => r["_measurement"] == "dispenses")
+  |> filter(fn: (r) => r["_field"] == "weight")
+  |> group(columns: ["_measurement"])
+  |> aggregateWindow(every: 1h, fn: sum, createEmpty: true)
+
+
+Revenue Across the Selected Date Range:
+from(bucket: "dispense_data")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r["_measurement"] == "dispenses" and r["_field"] == "cost")
+  |> group(columns: ["_measurement"])
+  |> sort(columns: ["_time"])
+  |> cumulativeSum(columns: ["_value"])
+
+
+Stock Dispensed for Each Product by Selected Date Range:
+from(bucket: "dispense_data")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r["_measurement"] == "dispenses" and r["_field"] == "weight")
+  |> group(columns: ["product_name"])
+  |> sort(columns: ["_time"])
+  |> cumulativeSum(columns: ["_value"])
+
+
+Target Revenue:
+import "experimental/date/boundaries"
+
+day = boundaries.yesterday()
+
+from(bucket: "dispense_data")
+  |> range(start: day.start, stop: day.stop)
+  |> filter(fn: (r) => r["_measurement"] == "dispenses" and r["_field"] == "cost")
+  |> group(columns: [])
+  |> sum()
+
+
+Target Stock:
+import "experimental/date/boundaries"
+
+day = boundaries.yesterday()
+
+from(bucket: "dispense_data")
+  |> range(start: day.start, stop: day.stop)
+  |> filter(fn: (r) => r["_measurement"] == "dispenses" and r["_field"] == "weight")
+  |> group(columns: [])
+  |> sum()
+
+

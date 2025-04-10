@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center">
+    <div class="w-100 mx-auto text-center">
+        <h4 class="m-2">Receipt for Order:</h4>
+        <h4 class="m-2" id="order-id">{{ order.id}}</h4>
+        <table class="table" id="receipt-table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Weight</th>
+                <th>Cost</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for purchase in archivedPurchases %}
+                <tr>
+                    <th scope="row">{{ purchase.name }}</th>
+                    <td>{{ purchase.weight }}g</td>
+                    <td>£{{ purchase.cost }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <p>Total Cost: £{{ order.order_cost }}</p>
+        <p>
+            Want to earn {{ order.order_cost // 1 }} points on this order and get the latest offers? 
+            Input your details below and take your RFID tag home today for future purchases!
+        </p>
+        <form method="POST">
+            <div class="form-group">
+                <label for="input-email">Email:</label>
+                <input type="text" class="form-control" name="input-email" id="input-email" placeholder="Enter email..." required>
+                <label for="input-email">Name:</label>
+                <input type="text" class="form-control" name="input-name" id="input-name" placeholder="Enter name..." required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block mb-5">Submit</button>
+            <a href="{{ url_for('home.rfidUID') }}">
+                <button type="button" class="btn btn-success btn-block">Next Customer</button>
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

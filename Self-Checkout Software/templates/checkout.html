@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <h4 class="m-2" id="rfidUID">{{ rfidUID }}</h4>
+    {% if accountExists is not none %}
+      <h5 class="m-2">Welcome back, {{ accountExists.name }}!</h5>
+      <h5 class="m-2">Current Points: {{ accountExists.points }}</h5>
+    {% else %}
+      <h5 class="m-2">You are not signed up for our rewards program, please ask the staff for more information.</h5>
+    {% endif %}
+    <table class="table" id="purchase-table">
+        <thead>
+          <tr>
+            {% for header in headings %}
+            <th>{{ header }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+        {% for purchase in purchases %}
+          <tr id="purchase-{{ purchase.id }}">
+            <th scope="row">{{ purchase.name }}</th>
+            <td>{{ purchase.weight }}g</td>
+            <td>£{{ purchase.cost }}</td>
+            <td>{{ purchase.purchased_at.strftime('%d-%m-%Y %H:%M:%S') }}</td>
+            <td><button class="btn btn-danger btn-sm remove-purchase" data-id="{{ purchase.id }}" data-pin-url= "{{ url_for('checkout.validatePin') }}" data-url="{{ url_for('checkout.removePurchase') }}">Remove</button></td>
+        {% endfor %}
+        </tbody>
+      </table>
+      <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#dispenseModal">
+        Add Dispense
+      </button>
+      <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#itemModal">
+        Add Item
+      </button>
+      {% if accountExists is not none %}
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="using-points">
+          <label class="form-check-label" for="using-points">
+            Use points balance with this purchase?
+          </label>
+        </div>
+      {% else %}
+        <div class="form-check">
+          <input type="hidden" class="form-check-input" type="checkbox" value="" id="using-points" checked="false">
+        </div>
+      {% endif %}
+      <p id="total-cost-text">Total Cost: £{{ totalCost }}</p>
+      <form id="payment-form" action="/checkout/checkout-session/{{ rfidUID }}" method="POST">
+         <input type="hidden" name="using-points-hidden" id="using-points-hidden">
+         <button type="submit" class="btn btn-success btn-lg btn-block mb-1" id="confirm-payment">Confirm Payment</button>
+      </form>
+      <form id="cancel-order-form" action="{{ url_for('checkout.cancel', rfidUID=rfidUID) }}" method="POST">
+        <button type="button" class="btn btn-danger btn-lg btn-block" id="cancel-order" data-pin-url= "{{ url_for('checkout.validatePin') }}">Cancel Order</button>
+      </form>
+
+      <div class="modal fade" id="dispenseModal" tabindex="-1" role="dialog" aria-labelledby="dispenseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="dispenseModalLabel">Add Custom Dispense </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="customRFIDUID" value="{{ rfidUID }}">
+              <label>Name:</label>
+              <input type="text" class="form-control" name="customDispense" id="customName" placeholder="Product name..." required>
+              <label>Weight:</label>
+              <input type="text" class="form-control" name="customDispense" id="customWeight" placeholder="Product weight..." required>
+              <label>Cost:</label>
+              <input type="text" class="form-control" name="customDispense" id="customCost" placeholder="Product cost..." required>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-success" id="confirm-custom-dispense" data-url="{{ url_for('checkout.addDispense') }}">Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="itemModal" tabindex="-1" role="dialog" aria-labelledby="itemModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="itemModalLabel">Add Item</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="itemRFIDUID" value="{{ rfidUID }}">
+              <select class="form-control" id="itemDropdown">
+                <option value="" disabled selected>Select an item to add...</option>
+                {% for item in items %}
+                  <option value="{{ item.name }},{{ item.cost }}">{{ item.name }} - £{{ item.cost }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-success" id="confirm-item" data-url="{{ url_for('checkout.addItem') }}">Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+{% endblock %}
