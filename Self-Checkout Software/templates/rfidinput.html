@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container d-flex justify-content-center align-items-center pt-5 mt-5">
+    <div class="w-100 mx-auto">
+        <form method="POST">
+            <h1>Please scan your customer tag...</h1>
+            <div class="form-group">
+                <input type="text" class="form-control" name="rfidUID" id="rfidUID" placeholder="Scan RFID..." required>
+                <small id="inputRFIDHelp" class="form-text text-muted">Please check the text input is selected when scanning RFID tag.</small>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg btn-block mb-3">Submit</button>
+        </form>
+        <a href="{{ url_for('refund.refundRequest') }}">
+            <button type="button" class="btn btn-secondary btn-lg btn-block">Request Refund</button>
+        </a>
+    </div>
+</div>
+
+{% endblock %}

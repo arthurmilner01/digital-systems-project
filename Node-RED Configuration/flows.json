@@ -1,0 +1,505 @@
+[
+    {
+        "id": "9b755eec2ed8677e",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "d7ff8b5c6a4b3656",
+        "type": "mqtt-broker",
+        "name": "Mosquitto Server",
+        "broker": "192.168.1.100",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "08a83d3406e3d3eb",
+        "type": "sqlitedb",
+        "db": "/home/arthur/Desktop/digital-systems-project/Payment System Software/purchases.db",
+        "mode": "RWC"
+    },
+    {
+        "id": "9ad43789617e1d4c",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "database",
+        "name": "InfluxDB",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://192.168.1.100:8086",
+        "timeout": "10",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "b5bf598fcbe607ea",
+        "type": "mqtt in",
+        "z": "9b755eec2ed8677e",
+        "name": "Customer Data",
+        "topic": "shop/customer",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "d7ff8b5c6a4b3656",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 720,
+        "y": 300,
+        "wires": [
+            [
+                "4850aae7b1c10c13"
+            ]
+        ]
+    },
+    {
+        "id": "00af50aa2a059487",
+        "type": "mqtt in",
+        "z": "9b755eec2ed8677e",
+        "name": "Capacity Data",
+        "topic": "shop/business/capacity",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "d7ff8b5c6a4b3656",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 730,
+        "y": 440,
+        "wires": [
+            [
+                "dafa7fa0920771a2"
+            ]
+        ]
+    },
+    {
+        "id": "46be916384839543",
+        "type": "sqlite",
+        "z": "9b755eec2ed8677e",
+        "mydb": "08a83d3406e3d3eb",
+        "sqlquery": "prepared",
+        "sql": "INSERT INTO purchase (rfid_uid, name, weight, cost, purchased_at) VALUES (?,?,?,?,?);",
+        "name": "Insert into SQLite DB",
+        "x": 1480,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4850aae7b1c10c13",
+        "type": "json",
+        "z": "9b755eec2ed8677e",
+        "name": "Convert to JS Object",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 960,
+        "y": 300,
+        "wires": [
+            [
+                "19ca82f858dfddae"
+            ]
+        ]
+    },
+    {
+        "id": "19ca82f858dfddae",
+        "type": "function",
+        "z": "9b755eec2ed8677e",
+        "name": "Get as array for SQLite",
+        "func": "let rfid_uid = msg.payload.rfid_uid;\nlet name = msg.payload.name;\nlet weight = msg.payload.weight;\nlet cost = msg.payload.cost;\nlet purchased_at = (new Date()).toISOString();\n\nmsg.params = [rfid_uid, name, weight, cost, purchased_at]\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1230,
+        "y": 300,
+        "wires": [
+            [
+                "46be916384839543"
+            ]
+        ]
+    },
+    {
+        "id": "80a55ced457c4097",
+        "type": "function",
+        "z": "9b755eec2ed8677e",
+        "name": "Format for InfluxDB",
+        "func": "let name = msg.payload.name\nlet capacity = msg.payload.capacity\n\nmsg.payload = [\n    {\n        capacity:capacity\n    },\n    {\n        product_name:name\n    }\n];\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1170,
+        "y": 440,
+        "wires": [
+            [
+                "86c694573064b8cb"
+            ]
+        ]
+    },
+    {
+        "id": "dafa7fa0920771a2",
+        "type": "json",
+        "z": "9b755eec2ed8677e",
+        "name": "Convert to JS Object",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 940,
+        "y": 440,
+        "wires": [
+            [
+                "80a55ced457c4097"
+            ]
+        ]
+    },
+    {
+        "id": "86c694573064b8cb",
+        "type": "influxdb out",
+        "z": "9b755eec2ed8677e",
+        "influxdb": "9ad43789617e1d4c",
+        "name": "Send to InfluxDB",
+        "measurement": "capacities",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "s",
+        "retentionPolicyV18Flux": "",
+        "org": "zero_waste_shop",
+        "bucket": "capacity_data",
+        "x": 1390,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "c83b6c23a771b470",
+        "type": "mqtt in",
+        "z": "9b755eec2ed8677e",
+        "name": "Business Dispense Data",
+        "topic": "shop/business/dispense",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "d7ff8b5c6a4b3656",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 750,
+        "y": 540,
+        "wires": [
+            [
+                "71de9d13f5305bb6"
+            ]
+        ]
+    },
+    {
+        "id": "776b8de9069a2e76",
+        "type": "function",
+        "z": "9b755eec2ed8677e",
+        "name": "Format for InfluxDB",
+        "func": "let name = msg.payload.name\nlet weight = msg.payload.weight\nlet cost = msg.payload.cost\n\nmsg.payload = [\n    {\n        weight:weight,\n        cost:cost\n    },\n    {\n        product_name:name\n    }\n];\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1250,
+        "y": 540,
+        "wires": [
+            [
+                "7301a50c1110dfc0"
+            ]
+        ]
+    },
+    {
+        "id": "71de9d13f5305bb6",
+        "type": "json",
+        "z": "9b755eec2ed8677e",
+        "name": "Convert to JS Object",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 1020,
+        "y": 540,
+        "wires": [
+            [
+                "776b8de9069a2e76"
+            ]
+        ]
+    },
+    {
+        "id": "7301a50c1110dfc0",
+        "type": "influxdb out",
+        "z": "9b755eec2ed8677e",
+        "influxdb": "9ad43789617e1d4c",
+        "name": "Send to InfluxDB",
+        "measurement": "dispenses",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "s",
+        "retentionPolicyV18Flux": "",
+        "org": "zero_waste_shop",
+        "bucket": "dispense_data",
+        "x": 1470,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "e96bb876d165346c",
+        "type": "mqtt in",
+        "z": "9b755eec2ed8677e",
+        "name": "Get Dispenser Details",
+        "topic": "dispenser/details",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "d7ff8b5c6a4b3656",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 720,
+        "y": 660,
+        "wires": [
+            [
+                "f38b49684b6d8003"
+            ]
+        ]
+    },
+    {
+        "id": "f38b49684b6d8003",
+        "type": "json",
+        "z": "9b755eec2ed8677e",
+        "name": "Convert to JS Object",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 980,
+        "y": 660,
+        "wires": [
+            [
+                "da5a9ce0eab262a5"
+            ]
+        ]
+    },
+    {
+        "id": "da5a9ce0eab262a5",
+        "type": "function",
+        "z": "9b755eec2ed8677e",
+        "name": "Get as array for SQLite",
+        "func": "let dispenser_id = parseInt(msg.payload.dispenser_id);\n\nmsg.params = [dispenser_id]\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1250,
+        "y": 660,
+        "wires": [
+            [
+                "d56e978d2dd4d84e"
+            ]
+        ]
+    },
+    {
+        "id": "d56e978d2dd4d84e",
+        "type": "sqlite",
+        "z": "9b755eec2ed8677e",
+        "mydb": "08a83d3406e3d3eb",
+        "sqlquery": "prepared",
+        "sql": "SELECT * from dispenser_details WHERE id = ?;",
+        "name": "Get details from DB",
+        "x": 1510,
+        "y": 660,
+        "wires": [
+            [
+                "294a7665ab85c6e4"
+            ]
+        ]
+    },
+    {
+        "id": "979a4236806b32ce",
+        "type": "mqtt out",
+        "z": "9b755eec2ed8677e",
+        "name": "Return Dispenser Details",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "d7ff8b5c6a4b3656",
+        "x": 1070,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "294a7665ab85c6e4",
+        "type": "function",
+        "z": "9b755eec2ed8677e",
+        "name": "Format for Return MQTT",
+        "func": "//Will only be one row as searching on id\nvar sqliteSelect = msg.payload[0];\n//Payload of response mqtt\nvar mqttResponsePayload = {\n    product_name: sqliteSelect.product_name,\n    cost_per_gram: sqliteSelect.cost_per_gram\n};\n//Topic for esp32 to listen on for response\nmsg.topic = \"dispenser/response/\" + String(sqliteSelect.id);\n//JSON string payload\nmsg.payload = JSON.stringify(mqttResponsePayload);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 750,
+        "y": 740,
+        "wires": [
+            [
+                "979a4236806b32ce"
+            ]
+        ]
+    },
+    {
+        "id": "317e6e4890504add",
+        "type": "mqtt in",
+        "z": "9b755eec2ed8677e",
+        "name": "Get RFID UID",
+        "topic": "dispenser/verify",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "d7ff8b5c6a4b3656",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 710,
+        "y": 860,
+        "wires": [
+            [
+                "04c0bcd8fdf8eac6"
+            ]
+        ]
+    },
+    {
+        "id": "04c0bcd8fdf8eac6",
+        "type": "json",
+        "z": "9b755eec2ed8677e",
+        "name": "Convert to JS Object",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 960,
+        "y": 860,
+        "wires": [
+            [
+                "915f23bab978d161"
+            ]
+        ]
+    },
+    {
+        "id": "915f23bab978d161",
+        "type": "function",
+        "z": "9b755eec2ed8677e",
+        "name": "Get as array for SQLite",
+        "func": "let dispenser_id = parseInt(msg.payload.dispenser_id);\nlet rfid_uid = parseInt(msg.payload.rfid_uid);\n\nmsg.params = [rfid_uid]\nmsg.dispenser_id = dispenser_id\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1250,
+        "y": 860,
+        "wires": [
+            [
+                "b6232e945ddddc0c"
+            ]
+        ]
+    },
+    {
+        "id": "b6232e945ddddc0c",
+        "type": "sqlite",
+        "z": "9b755eec2ed8677e",
+        "mydb": "08a83d3406e3d3eb",
+        "sqlquery": "prepared",
+        "sql": "SELECT * from rfidtags WHERE rfid_uid = $rfid_uid;",
+        "name": "Get details from DB",
+        "x": 1490,
+        "y": 860,
+        "wires": [
+            [
+                "58fa82b669e5b26c"
+            ]
+        ]
+    },
+    {
+        "id": "58fa82b669e5b26c",
+        "type": "function",
+        "z": "9b755eec2ed8677e",
+        "name": "Format for Return MQTT",
+        "func": "//Will only be one row as searching on id\nvar sqliteSelect = msg.payload[0];\n//Init rfid_valid variable\nlet rfid_valid = false;\n//If result is returned by database set rfid_valid to true\nif(sqliteSelect)\n{\n    rfid_valid = true;\n}\n//Payload of response mqtt\nvar mqttResponsePayload = {\n    rfid_valid: rfid_valid\n};\n//Topic esp32 will listen at for response\nmsg.topic = \"dispenser/verify/\" + String(msg.dispenser_id);\n//JSON string payload\nmsg.payload = JSON.stringify(mqttResponsePayload);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 750,
+        "y": 940,
+        "wires": [
+            [
+                "04dc22f6f2ec6ad2"
+            ]
+        ]
+    },
+    {
+        "id": "04dc22f6f2ec6ad2",
+        "type": "mqtt out",
+        "z": "9b755eec2ed8677e",
+        "name": "Return Validation",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "d7ff8b5c6a4b3656",
+        "x": 1050,
+        "y": 940,
+        "wires": []
+    }
+]

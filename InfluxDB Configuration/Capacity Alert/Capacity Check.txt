@@ -1,0 +1,17 @@
+import "influxdata/influxdb/monitor"
+import "influxdata/influxdb/v1"
+
+data =
+    from(bucket: "capacity_data")
+        |> range(start: -1h)
+        |> filter(fn: (r) => r["_measurement"] == "capacities")
+        |> filter(fn: (r) => r["_field"] == "capacity")
+        |> aggregateWindow(every: 1m, fn: last, createEmpty: false)
+
+option task = {name: "Capcity Check", every: 1h, offset: 0s}
+
+check = {_check_id: "******", _check_name: "Capcity Check", _type: "threshold", tags: {}}
+crit = (r) => r["capacity"] < 10.0
+messageFn = (r) => "Product '${r.product_name}' has a low capacity of ${r.capacity}%."
+
+data |> v1["fieldsAsCols"]() |> monitor["check"](data: check, messageFn: messageFn, crit: crit)

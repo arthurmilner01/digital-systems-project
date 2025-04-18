@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container d-flex justify-content-center align-items-center pt-5 mt-5">
+    <div class="w-100 mx-auto">
+        <form method="POST">
+            <h1>Enter the refund details...</h1>
+            <div class="form-group">
+                <input type="text" class="form-control mb-1" name="refundOrderID" id="refundOrderID" placeholder="Refund Order ID..." required>
+                <small id="refundRequestHelp" class="form-text text-muted">Please ensure refund details are correct...</small>
+            </div>
+        </form>
+        <button type="button" class="btn btn-primary btn-lg btn-block" id="request-refund-button" data-home-url="{{ url_for('home.rfidUID') }}" data-pin-url= "{{ url_for('checkout.validatePin') }}" data-refund-url="{{ url_for('refund.refundSession') }}" data-url="{{ url_for('refund.validateRefund') }}">Request Refund</button>
+        <a href="{{ url_for('home.rfidUID') }}">
+            <button type="button" class="btn btn-secondary btn-lg btn-block mt-3">Return Home</button>
+        </a>
+    </div>
+</div>
+
+{% endblock %}

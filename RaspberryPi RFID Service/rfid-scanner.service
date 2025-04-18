@@ -1,0 +1,19 @@
+[Unit]
+Description=RFID Scanner Service
+After=network.target
+
+[Service]
+ExecStart=/home/arthur/Desktop/rfidservice/.venv/bin/python /home/arthur/Desktop/rfidservice/input_scanned_rfid.py
+WorkingDirectory=/home/arthur/Desktop/rfidservice
+User=arthur
+Group=arthur
+Environment="DISPLAY=:0"
+Environment="XDG_RUNTIME_DIR=/run/user/1000"
+Environment="PATH=/home/arthur/Desktop/rfidservice/.venv/bin:$PATH"
+Restart=always
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=rfid-scanner
+
+[Install]
+WantedBy=multi-user.target

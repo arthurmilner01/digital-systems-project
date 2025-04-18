@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center pt-5 mt-5">
+    <div class="w-100 mx-auto text-center">
+        <h4 class="m-2">Thank you for your purchase, {{ account.name }}.</h4>
+        <h4 class="m-2">You have {{ account.points }} points.</h4>
+        <h4 class="m-2 mb-5">{{ sendStatus }}</h4>
+        <a href="{{ url_for('home.rfidUID') }}">
+            <button type="button" class="btn btn-success btn-block">Next Customer</button>
+        </a>
+    </div>
+</div>
+{% endblock %}
