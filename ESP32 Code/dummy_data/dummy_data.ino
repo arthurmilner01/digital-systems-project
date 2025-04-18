@@ -83,8 +83,8 @@ void loop()
   String productName = PRODUCT_NAMES[productNameIndex];
   //Random value between 0-100 for capacity % full
   float percentFull = esp_random() % 101;
-  //Random value for amount dispensed (between 0.01 and 20.00)
-  float amountDispensed = ((esp_random() % 2000) + 1) / 100;
+  //Random value for amount dispensed (between 0.01 and 200.00)
+  float amountDispensed = ((esp_random() % 20000) + 1) / 100;
   //Random value for cost dispensed (between 0.01 and 20.00)
   float costDispensed = ((esp_random() % 2000) + 1) / 100;
 
